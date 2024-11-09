@@ -6,4 +6,8 @@
         <Nullable>enable</Nullable>
     </PropertyGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\DjinniAIReplyBot.Domain\DjinniAIReplyBot.Domain.csproj" />
+    </ItemGroup>
+
 </Project>
