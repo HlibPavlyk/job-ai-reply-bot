@@ -1,4 +1,7 @@
 using DjinniAIReplyBot.Application.Abstractions.ExternalServices;
+using DjinniAIReplyBot.Application.Abstractions.Telegram;
+using DjinniAIReplyBot.Application.Commands;
+using DjinniAIReplyBot.Application.Services;
 using DjinniAIReplyBot.Infrastructure.ExternalServices;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -21,6 +24,14 @@ public static class DependencyContainerExtensions
         });
         
         services.AddScoped<ITelegramService, TelegramService>();
+        services.AddScoped<ICommand, StartCommand>();
+        services.AddScoped<ITelegramUpdateListener, CommandExecutor>();
+        services.AddScoped<UpdateDistributor<CommandExecutor>>(provider =>
+        {
+            return new UpdateDistributor<CommandExecutor>(() => 
+                provider.GetRequiredService<ITelegramUpdateListener>() as CommandExecutor ?? 
+                throw new InvalidOperationException("CommandExecutor is not registered."));
+        });
 
     }
 }
