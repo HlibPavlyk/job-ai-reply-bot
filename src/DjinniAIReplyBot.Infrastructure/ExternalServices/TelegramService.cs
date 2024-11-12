@@ -1,5 +1,6 @@
 using DjinniAIReplyBot.Application.Abstractions.ExternalServices;
 using Telegram.Bot;
+using Telegram.Bot.Types.ReplyMarkups;
 
 namespace DjinniAIReplyBot.Infrastructure.ExternalServices;
 
@@ -15,5 +16,10 @@ public class TelegramService : ITelegramService
     public async Task SendMessageAsync(long chatId, string message)
     {
         await _bot.SendMessage(chatId, message);
+    }
+
+    public async Task SendMessageAsync(long chatId, string message, InlineKeyboardMarkup replyMarkup)
+    {
+        await _bot.SendMessage(chatId, message, replyMarkup: replyMarkup);
     }
 }

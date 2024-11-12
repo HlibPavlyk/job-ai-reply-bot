@@ -22,16 +22,10 @@ public static class DependencyContainerExtensions
             }
             return new TelegramBotClient(token);
         });
-        
-        services.AddScoped<ITelegramService, TelegramService>();
-        services.AddScoped<ICommand, StartCommand>();
-        services.AddScoped<ITelegramUpdateListener, CommandExecutor>();
-        services.AddScoped<UpdateDistributor<CommandExecutor>>(provider =>
-        {
-            return new UpdateDistributor<CommandExecutor>(() => 
-                provider.GetRequiredService<ITelegramUpdateListener>() as CommandExecutor ?? 
-                throw new InvalidOperationException("CommandExecutor is not registered."));
-        });
 
+        services.AddSingleton<ITelegramService, TelegramService>();
+        services.AddSingleton<CommandExecutor>();
+        services.AddSingleton<ICommandListenerManager>(provider => provider.GetRequiredService<CommandExecutor>());
+        
     }
 }
