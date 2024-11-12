@@ -1,6 +1,6 @@
 using DjinniAIReplyBot.Application.Abstractions.ExternalServices;
 using DjinniAIReplyBot.Application.Abstractions.Telegram;
-using DjinniAIReplyBot.Domain.Exceptions;
+using DjinniAIReplyBot.Application.Dtos.Telegram;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
 
@@ -11,43 +11,41 @@ public class ConfigureCommand : ICommand, IListener
     public string Name => "/config";
     private readonly ITelegramService _client;
     private readonly ICommandListenerManager _listenerManager;
-    private string? _language;
-    private string? _name;
-    private long? _chatId;
+    private readonly Dictionary<long, UserConfigState> _userStates;
 
     public ConfigureCommand(ITelegramService client, ICommandListenerManager listenerManager)
     {
         _client = client;
         _listenerManager = listenerManager;
+        _userStates = new Dictionary<long, UserConfigState>();
     }
 
     public async Task Execute(Update update)
     {
         if (update.Message?.Text == null) return;
 
-        _chatId = update.Message.Chat.Id;
-        _listenerManager.StartListen(this, _chatId.Value);
+        long chatId = update.Message.Chat.Id;
+        _listenerManager.StartListen(this, chatId);
 
-        // Створення клавіатури для вибору мови
+        _userStates[chatId] = new UserConfigState();
+
         var languageKeyboard = new InlineKeyboardMarkup(new[]
         {
             new[] { InlineKeyboardButton.WithCallbackData("English", "lang_en") },
             new[] { InlineKeyboardButton.WithCallbackData("Ukrainian", "lang_ua") }
         });
 
-        await _client.SendMessageAsync(_chatId.Value, "Choose language:", languageKeyboard);
+        await _client.SendMessageAsync(chatId, "Choose language:", languageKeyboard);
     }
 
     public async Task GetUpdate(Update update)
     {
-        if (update.CallbackQuery != null && update.CallbackQuery.Data != null)
+        if (update.CallbackQuery?.Data != null)
         {
-            // Обробка натискання кнопки вибору мови
             await HandleLanguageSelection(update.CallbackQuery);
         }
         else if (update.Message?.Text != null)
         {
-            // Обробка введення імені
             await HandleNameInput(update.Message);
         }
     }
@@ -58,13 +56,11 @@ public class ConfigureCommand : ICommand, IListener
         {
             long chatId = callbackQuery.Message.Chat.Id;
 
-            if (chatId != _listenerManager.CurrentChatId)
-                throw new UserNotificationException("You should wait for your turn. Another user is configuring now.");
+            if (!_userStates.TryGetValue(chatId, out var state))
+                return;
 
-            // Збереження вибраної мови
-            _language = callbackQuery.Data == "lang_en" ? "English" : "Ukrainian";
+            state.Language = callbackQuery.Data == "lang_en" ? "English" : "Ukrainian";
         
-            // Надсилаємо запит на введення імені після вибору мови
             await _client.SendMessageAsync(chatId, "Enter your name");
         }
     }
@@ -73,15 +69,16 @@ public class ConfigureCommand : ICommand, IListener
     {
         long chatId = message.Chat.Id;
 
-        if (chatId != _listenerManager.CurrentChatId)
-            throw new UserNotificationException("You should wait for your turn. Another user is configuring now.");
+        if (!_userStates.TryGetValue(chatId, out var state))
+            return;
 
-        _name = message.Text;
-        await _client.SendMessageAsync(chatId, $"Thank you! We will not bother you anymore.\nYour data: {_name} {_language}");
+        state.Name = message.Text;
+        var userState = _userStates[chatId];
 
-        // Скидання стану і завершення прослуховування
-        _language = null;
-        _name = null;
-        _listenerManager.StopListen();
+        await _client.SendMessageAsync(chatId, $"Thank you! We will not bother you anymore.\nYour data: {userState.Name} {userState.Language}");
+
+        _userStates.Remove(chatId);
+        _listenerManager.StopListen(chatId);
     }
 }
+
