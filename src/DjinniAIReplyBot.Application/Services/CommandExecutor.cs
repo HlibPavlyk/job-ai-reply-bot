@@ -1,5 +1,6 @@
 using DjinniAIReplyBot.Application.Abstractions.ExternalServices;
 using DjinniAIReplyBot.Application.Abstractions.Telegram;
+using DjinniAIReplyBot.Application.Helpers;
 using Telegram.Bot.Types;
 
 namespace DjinniAIReplyBot.Application.Services;
@@ -13,6 +14,7 @@ public class CommandExecutor : ICommandListenerManager
     {
         _commands = GetCommands(client);
         _listeners = new Dictionary<long, IListener>();
+        
     }
 
     private List<ICommand> GetCommands(ITelegramService client)
@@ -46,21 +48,49 @@ public class CommandExecutor : ICommandListenerManager
     }
 
     public async Task GetUpdate(Update update)
+{
+    long? chatId = update.Message?.Chat.Id ?? update.CallbackQuery?.Message?.Chat.Id;
+    long authorChatId = long.Parse(AppConfig.Configuration["AuthorChatId"] ??
+                                   throw new InvalidOperationException("Author chat id is not configured."));
+
+    if (chatId == null) return;
+
+    // Перевірка, якщо це колбек від автора
+    if (chatId == authorChatId && update.CallbackQuery != null)
     {
-        long? chatId = update.Message?.Chat.Id ?? update.CallbackQuery?.Message?.Chat.Id;
+        await HandleAuthorCallback(update.CallbackQuery);
+        return;
+    }
 
-        if (chatId == null) return;
+    // Якщо є listener для цього чату, передаємо оновлення йому
+    if (_listeners.TryGetValue(chatId.Value, out var listener))
+    {
+        await listener.GetUpdate(update);
+    }
+    else
+    {
+        // Інакше, виконуємо команду
+        await ExecuteCommand(update);
+    }
+}
 
-        if (_listeners.TryGetValue(chatId.Value, out var listener))
+    private async Task HandleAuthorCallback(CallbackQuery callbackQuery)
+    {
+        if (callbackQuery.Message == null || callbackQuery.Data == null)
+            return;
+
+        string[] dataParts = callbackQuery.Data.Split('_');
+        if (long.TryParse(dataParts[^1], out var targetChatId))
         {
-            await listener.GetUpdate(update);
-        }
-        else
-        {
-            await ExecuteCommand(update);
+            if (_listeners.TryGetValue(targetChatId, out var listener))
+            {
+                // Викликаємо listener для обробки колбеку
+                await listener.GetUpdate(new Update { CallbackQuery = callbackQuery });
+            }
         }
     }
 
+    
     private async Task ExecuteCommand(Update update)
     {
         if (update.Message?.Text == null) return;
