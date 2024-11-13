@@ -1,6 +1,7 @@
 using DjinniAIReplyBot.Application.Abstractions.ExternalServices;
 using DjinniAIReplyBot.Application.Abstractions.Telegram;
 using DjinniAIReplyBot.Application.Commands;
+using DjinniAIReplyBot.Application.Helpers;
 using DjinniAIReplyBot.Application.Services;
 using DjinniAIReplyBot.Infrastructure.ExternalServices;
 using Microsoft.Extensions.Configuration;
@@ -22,6 +23,8 @@ public static class DependencyContainerExtensions
             }
             return new TelegramBotClient(token);
         });
+        
+        AppConfig.Configuration = configuration;
 
         services.AddSingleton<ITelegramService, TelegramService>();
         services.AddSingleton<CommandExecutor>();
