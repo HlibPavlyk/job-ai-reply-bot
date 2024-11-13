@@ -1,0 +1,44 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{651C01B0-6026-4F33-AA61-419BEBF36197}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{57749F63-7E1A-467D-A093-C8149DDE71E7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DjinniAIReplyBot.Api", "src\DjinniAIReplyBot.Api\DjinniAIReplyBot.Api.csproj", "{83EEB969-7652-4FE5-9EDA-0768F4C372B8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DjinniAIReplyBot.Application", "src\DjinniAIReplyBot.Application\DjinniAIReplyBot.Application.csproj", "{6CDBB72E-D85E-4FF0-BA3E-9A47F16809E7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DjinniAIReplyBot.Infrastructure", "src\DjinniAIReplyBot.Infrastructure\DjinniAIReplyBot.Infrastructure.csproj", "{474A16E2-EFDF-46B1-8E09-F42691895717}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DjinniAIReplyBot.Domain", "src\DjinniAIReplyBot.Domain\DjinniAIReplyBot.Domain.csproj", "{D3E6A616-8742-4932-84A1-CFCB27D5B3F1}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{83EEB969-7652-4FE5-9EDA-0768F4C372B8} = {651C01B0-6026-4F33-AA61-419BEBF36197}
+		{6CDBB72E-D85E-4FF0-BA3E-9A47F16809E7} = {651C01B0-6026-4F33-AA61-419BEBF36197}
+		{474A16E2-EFDF-46B1-8E09-F42691895717} = {651C01B0-6026-4F33-AA61-419BEBF36197}
+		{D3E6A616-8742-4932-84A1-CFCB27D5B3F1} = {651C01B0-6026-4F33-AA61-419BEBF36197}
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{83EEB969-7652-4FE5-9EDA-0768F4C372B8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{83EEB969-7652-4FE5-9EDA-0768F4C372B8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{83EEB969-7652-4FE5-9EDA-0768F4C372B8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{83EEB969-7652-4FE5-9EDA-0768F4C372B8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6CDBB72E-D85E-4FF0-BA3E-9A47F16809E7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6CDBB72E-D85E-4FF0-BA3E-9A47F16809E7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6CDBB72E-D85E-4FF0-BA3E-9A47F16809E7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6CDBB72E-D85E-4FF0-BA3E-9A47F16809E7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{474A16E2-EFDF-46B1-8E09-F42691895717}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{474A16E2-EFDF-46B1-8E09-F42691895717}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{474A16E2-EFDF-46B1-8E09-F42691895717}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{474A16E2-EFDF-46B1-8E09-F42691895717}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D3E6A616-8742-4932-84A1-CFCB27D5B3F1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D3E6A616-8742-4932-84A1-CFCB27D5B3F1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D3E6A616-8742-4932-84A1-CFCB27D5B3F1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D3E6A616-8742-4932-84A1-CFCB27D5B3F1}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
