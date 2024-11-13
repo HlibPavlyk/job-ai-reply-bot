@@ -9,88 +9,62 @@ public class CommandExecutor : ICommandListenerManager
 {
     private readonly List<ICommand> _commands;
     private readonly Dictionary<long, IListener> _listeners;
+    private readonly long _authorChatId;
 
     public CommandExecutor(ITelegramService client)
     {
         _commands = GetCommands(client);
         _listeners = new Dictionary<long, IListener>();
-        
+        _authorChatId = long.Parse(AppConfig.Configuration["AuthorChatId"] 
+            ?? throw new InvalidOperationException("Author chat id is not configured."));
     }
 
     private List<ICommand> GetCommands(ITelegramService client)
     {
-        var types = AppDomain
-            .CurrentDomain
+        var types = AppDomain.CurrentDomain
             .GetAssemblies()
             .SelectMany(assembly => assembly.GetTypes())
-            .Where(type => typeof(ICommand).IsAssignableFrom(type))
-            .Where(type => type.IsClass);
+            .Where(type => typeof(ICommand).IsAssignableFrom(type) && type.IsClass);
 
-        List<ICommand> commands = new List<ICommand>();
-        foreach (var type in types)
-        {
-            ICommand? command;
-            if (typeof(IListener).IsAssignableFrom(type))
-            {
-                command = Activator.CreateInstance(type, client, this) as ICommand;
-            }
-            else
-            {
-                command = Activator.CreateInstance(type, client) as ICommand;
-            }
-
-            if (command != null)
-            {
-                commands.Add(command);
-            }
-        }
-        return commands;
+        return types
+            .Select(type => typeof(IListener).IsAssignableFrom(type) 
+                ? Activator.CreateInstance(type, client, this) as ICommand 
+                : Activator.CreateInstance(type, client) as ICommand)
+            .Where(command => command != null)
+            .ToList()!;
     }
 
     public async Task GetUpdate(Update update)
-{
-    long? chatId = update.Message?.Chat.Id ?? update.CallbackQuery?.Message?.Chat.Id;
-    long authorChatId = long.Parse(AppConfig.Configuration["AuthorChatId"] ??
-                                   throw new InvalidOperationException("Author chat id is not configured."));
-
-    if (chatId == null) return;
-
-    // Перевірка, якщо це колбек від автора
-    if (chatId == authorChatId && update.CallbackQuery != null)
     {
-        await HandleAuthorCallback(update.CallbackQuery);
-        return;
-    }
+        long? chatId = update.Message?.Chat.Id ?? update.CallbackQuery?.Message?.Chat.Id;
+        if (chatId == null) return;
 
-    // Якщо є listener для цього чату, передаємо оновлення йому
-    if (_listeners.TryGetValue(chatId.Value, out var listener))
-    {
-        await listener.GetUpdate(update);
-    }
-    else
-    {
-        // Інакше, виконуємо команду
-        await ExecuteCommand(update);
-    }
-}
-
-    private async Task HandleAuthorCallback(CallbackQuery callbackQuery)
-    {
-        if (callbackQuery.Message == null || callbackQuery.Data == null)
-            return;
-
-        string[] dataParts = callbackQuery.Data.Split('_');
-        if (long.TryParse(dataParts[^1], out var targetChatId))
+        if (chatId == _authorChatId && update.CallbackQuery?.Data != null)
         {
-            if (_listeners.TryGetValue(targetChatId, out var listener))
-            {
-                // Викликаємо listener для обробки колбеку
-                await listener.GetUpdate(new Update { CallbackQuery = callbackQuery });
-            }
+            await ProcessAuthorCallback(update, update.CallbackQuery.Data);
+        }
+
+        if (_listeners.TryGetValue(chatId.Value, out var listener))
+        {
+            await listener.GetUpdate(update);
+        }
+        else
+        {
+            await ExecuteCommand(update);
         }
     }
 
-    
+    private async Task ProcessAuthorCallback(Update update, string callbackData)
+    {
+        var dataParts = callbackData.Split('_');
+        if (dataParts.Length < 2 || !long.TryParse(dataParts[^1], out var targetChatId)) return;
+
+        if (_listeners.TryGetValue(targetChatId, out var listener))
+        {
+            await listener.GetUpdate(update);
+        }
+    }
+
     private async Task ExecuteCommand(Update update)
     {
         if (update.Message?.Text == null) return;
