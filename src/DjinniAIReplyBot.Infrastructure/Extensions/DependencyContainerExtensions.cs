@@ -1,8 +1,6 @@
 using DjinniAIReplyBot.Application.Abstractions.ExternalServices;
 using DjinniAIReplyBot.Application.Abstractions.Repositories;
 using DjinniAIReplyBot.Application.Abstractions.Telegram;
-using DjinniAIReplyBot.Application.Commands;
-using DjinniAIReplyBot.Application.Helpers;
 using DjinniAIReplyBot.Application.Services;
 using DjinniAIReplyBot.Infrastructure.ExternalServices;
 using DjinniAIReplyBot.Infrastructure.Repositories;
@@ -30,8 +28,6 @@ public static class DependencyContainerExtensions
             return new TelegramBotClient(token);
         });
         
-        AppConfig.Configuration = configuration;
-
         services.AddSingleton<ITelegramService, TelegramService>();
         services.AddSingleton<CommandExecutor>();
         services.AddSingleton<ICommandListenerManager>(provider => provider.GetRequiredService<CommandExecutor>());

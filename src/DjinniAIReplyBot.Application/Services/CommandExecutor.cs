@@ -1,6 +1,6 @@
-using DjinniAIReplyBot.Application.Abstractions.ExternalServices;
 using DjinniAIReplyBot.Application.Abstractions.Telegram;
-using DjinniAIReplyBot.Application.Helpers;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Telegram.Bot.Types;
 
 namespace DjinniAIReplyBot.Application.Services;
@@ -11,15 +11,17 @@ public class CommandExecutor : ICommandListenerManager
     private readonly Dictionary<long, IListener> _listeners;
     private readonly long _authorChatId;
 
-    public CommandExecutor(ITelegramService client)
+    public CommandExecutor(IServiceProvider serviceProvider)
     {
-        _commands = GetCommands(client);
+        _commands = GetCommands(serviceProvider);
         _listeners = new Dictionary<long, IListener>();
-        _authorChatId = long.Parse(AppConfig.Configuration["AuthorChatId"] 
-            ?? throw new InvalidOperationException("Author chat id is not configured."));
+        
+        var configuration = serviceProvider.GetRequiredService<IConfiguration>();
+        _authorChatId = long.Parse(configuration["AuthorChatId"] ??
+                                   throw new InvalidOperationException("Author chat id is not configured."));
     }
 
-    private List<ICommand> GetCommands(ITelegramService client)
+    private List<ICommand> GetCommands(IServiceProvider serviceProvider)
     {
         var types = AppDomain.CurrentDomain
             .GetAssemblies()
@@ -28,8 +30,8 @@ public class CommandExecutor : ICommandListenerManager
 
         return types
             .Select(type => typeof(IListener).IsAssignableFrom(type) 
-                ? Activator.CreateInstance(type, client, this) as ICommand 
-                : Activator.CreateInstance(type, client) as ICommand)
+                ? Activator.CreateInstance(type, serviceProvider, this) as ICommand 
+                : Activator.CreateInstance(type, serviceProvider) as ICommand)
             .Where(command => command != null)
             .ToList()!;
     }

@@ -1,6 +1,8 @@
 using DjinniAIReplyBot.Application.Abstractions.ExternalServices;
+using DjinniAIReplyBot.Application.Abstractions.Repositories;
 using DjinniAIReplyBot.Application.Abstractions.Telegram;
-using DjinniAIReplyBot.Application.Helpers;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
 
@@ -11,16 +13,23 @@ public class StartCommand : ICommand, IListener
     public string Name => "/start";
     private readonly ITelegramService _client;
     private readonly ICommandListenerManager _listenerManager;
-    private readonly Dictionary<long, bool> _isUserAccepted;
+    private readonly IUserConfigurationRepository _userConfigurationRepository;
+    private readonly Dictionary<long, bool?> _isUserAccepted;
     private readonly long _authorChatId;
 
-    public StartCommand(ITelegramService client, ICommandListenerManager listenerManager)
+    public StartCommand(IServiceProvider serviceProvider, ICommandListenerManager listenerManager)
     {
-        _client = client;
         _listenerManager = listenerManager;
-        _isUserAccepted = new Dictionary<long, bool>();
-        _authorChatId = long.Parse(AppConfig.Configuration["AuthorChatId"] 
-            ?? throw new InvalidOperationException("Author chat id is not configured."));
+        _isUserAccepted = new Dictionary<long, bool?>();
+        
+        using var scope = serviceProvider.CreateScope();
+        _client = scope.ServiceProvider.GetRequiredService<ITelegramService>();
+        _userConfigurationRepository = scope.ServiceProvider.GetRequiredService<IUserConfigurationRepository>();
+
+        var configuration = serviceProvider.GetRequiredService<IConfiguration>();
+        _authorChatId = long.Parse(configuration["AuthorChatId"] ??
+                                   throw new InvalidOperationException("Author chat id is not configured."));
+       
     }
 
     public async Task Execute(Update update)
@@ -29,6 +38,8 @@ public class StartCommand : ICommand, IListener
 
         long chatId = update.Message.Chat.Id;
         string? userName = update.Message.Chat.Username;
+        
+        var userConfiguration = await _userConfigurationRepository.GetUserConfigurationAsync(chatId);
 
         await _client.SendMessageAsync(chatId, "Welcome to the bot! Please wait for the author to accept you.");
 
@@ -37,17 +48,19 @@ public class StartCommand : ICommand, IListener
             await _client.SendMessageAsync(chatId, "You should have a username to use the bot.");
             return;
         }
+        userName = '@' + userName;
+        
 
         _listenerManager.StartListen(this, chatId);
         _isUserAccepted[chatId] = false;
 
         var acceptKeyboard = new InlineKeyboardMarkup(new[]
         {
-            new[] { InlineKeyboardButton.WithCallbackData("Accept", $"accept_@{userName}_{chatId}") },
-            new[] { InlineKeyboardButton.WithCallbackData("Reject", $"reject_@{userName}_{chatId}") }
+            new[] { InlineKeyboardButton.WithCallbackData("Accept", $"accept_{userName}_{chatId}") },
+            new[] { InlineKeyboardButton.WithCallbackData("Reject", $"reject_{userName}_{chatId}") }
         });
 
-        await _client.SendMessageAsync(_authorChatId, $"Do you want to accept the user @{userName}?", acceptKeyboard);
+        await _client.SendMessageAsync(_authorChatId, $"Do you want to accept the user {userName}?", acceptKeyboard);
     }
 
     public async Task GetUpdate(Update update)
@@ -62,10 +75,9 @@ public class StartCommand : ICommand, IListener
 
             if (_isUserAccepted.TryGetValue(chatId, out var isAccepted))
             {
-                if (!isAccepted)
+                if (!isAccepted.Value)
                 {
                     await _client.SendMessageAsync(chatId, "You should wait for the author to accept you.");
-                    return;
                 }
             }
             else

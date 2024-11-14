@@ -1,6 +1,8 @@
 using DjinniAIReplyBot.Application.Abstractions.ExternalServices;
+using DjinniAIReplyBot.Application.Abstractions.Repositories;
 using DjinniAIReplyBot.Application.Abstractions.Telegram;
 using DjinniAIReplyBot.Domain.Exceptions;
+using Microsoft.Extensions.DependencyInjection;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
 
@@ -11,11 +13,15 @@ public class LanguageCommand : ICommand, IListener
     public string Name => "/language";
     private readonly ITelegramService _client;
     private readonly ICommandListenerManager _listenerManager;
+    private readonly IUserConfigurationRepository _userConfigurationRepository;
     private readonly Dictionary<long, string> _userLanguages;
 
-    public LanguageCommand(ITelegramService client, ICommandListenerManager listenerManager)
+    public LanguageCommand(IServiceProvider serviceProvider, ICommandListenerManager listenerManager)
     {
-        _client = client;
+        using var scope = serviceProvider.CreateScope();
+        _client = scope.ServiceProvider.GetRequiredService<ITelegramService>();
+        _userConfigurationRepository = scope.ServiceProvider.GetRequiredService<IUserConfigurationRepository>();
+        
         _listenerManager = listenerManager;
         _userLanguages = new Dictionary<long, string>();
     }
