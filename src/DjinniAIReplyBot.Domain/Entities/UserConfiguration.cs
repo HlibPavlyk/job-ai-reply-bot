@@ -9,4 +9,5 @@ public class UserConfiguration
     public ReplyLanguage ReplyLanguage { get; set; }
     public string ParsedResume { get; set; } = string.Empty;
     public string? AdditionalConfiguration { get; set; }
+    public bool IsAccepted { get; set; }
 }

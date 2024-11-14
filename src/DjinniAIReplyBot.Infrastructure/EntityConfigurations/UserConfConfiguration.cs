@@ -41,5 +41,10 @@ public class UserConfConfiguration : IEntityTypeConfiguration<UserConfiguration>
 
         builder.Property(u => u.AdditionalConfiguration)
             .HasColumnName("additional_configuration");
+        
+        builder.Property(u => u.IsAccepted)
+            .HasColumnName("is_accepted")
+            .IsRequired()
+            .HasDefaultValue(false);
     }
 }

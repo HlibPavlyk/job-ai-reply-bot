@@ -1,5 +1,4 @@
 using DjinniAIReplyBot.Application.Abstractions.Repositories;
-using DjinniAIReplyBot.Application.Helpers;
 using DjinniAIReplyBot.Domain.Entities;
 
 namespace DjinniAIReplyBot.Infrastructure.Repositories;
