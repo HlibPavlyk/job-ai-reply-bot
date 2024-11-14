@@ -17,10 +17,16 @@ public class UserConfConfiguration : IEntityTypeConfiguration<UserConfiguration>
             .HasColumnName("chat_id")
             .IsRequired();
         
+        builder.HasIndex(u => u.ChatId)
+            .IsUnique();
+        
         builder.Property(u => u.UserName)
             .HasColumnName("username")
             .IsRequired()
             .HasMaxLength(100);
+        
+        builder.HasIndex(u => u.UserName)
+            .IsUnique();
 
         builder.Property(u => u.ReplyLanguage)
             .HasColumnName("reply_language")

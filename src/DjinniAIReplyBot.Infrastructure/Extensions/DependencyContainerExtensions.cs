@@ -14,6 +14,8 @@ public static class DependencyContainerExtensions
 {
     public static void AddDependencies(this IServiceCollection services, IConfiguration configuration)
     {
+        services.AddDbEfConnection(configuration);
+        
         services.AddSingleton<TelegramBotClient>(_ =>
         {
             var token = configuration["TelegramBotToken"];
