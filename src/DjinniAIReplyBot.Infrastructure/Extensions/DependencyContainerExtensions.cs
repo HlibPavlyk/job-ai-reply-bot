@@ -1,6 +1,7 @@
 using DjinniAIReplyBot.Application.Abstractions.ExternalServices;
 using DjinniAIReplyBot.Application.Abstractions.Repositories;
 using DjinniAIReplyBot.Application.Abstractions.Telegram;
+using DjinniAIReplyBot.Application.Helpers;
 using DjinniAIReplyBot.Application.Services;
 using DjinniAIReplyBot.Infrastructure.ExternalServices;
 using DjinniAIReplyBot.Infrastructure.Repositories;
@@ -16,6 +17,7 @@ public static class DependencyContainerExtensions
     {
         services.AddDbEfConnection(configuration);
         
+        services.AddSingleton<ScopedServiceAccessor>();
         services.AddScoped<IUserConfigurationRepository, UserConfigurationRepository>();
         
         services.AddSingleton<TelegramBotClient>(_ =>
