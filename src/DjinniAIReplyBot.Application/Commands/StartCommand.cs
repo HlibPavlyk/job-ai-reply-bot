@@ -1,53 +1,78 @@
-using DjinniAIReplyBot.Application.Abstractions.ExternalServices;
 using DjinniAIReplyBot.Application.Abstractions.Telegram;
-using DjinniAIReplyBot.Application.Helpers;
+using DjinniAIReplyBot.Domain.Entities;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
 
 namespace DjinniAIReplyBot.Application.Commands;
 
-public class StartCommand : ICommand, IListener
+public class StartCommand : BaseCommand, IListener
 {
-    public string Name => "/start";
-    private readonly ITelegramService _client;
+    public override string Name => "/start";
     private readonly ICommandListenerManager _listenerManager;
-    private readonly Dictionary<long, bool> _isUserAccepted;
+    private readonly Dictionary<long, bool?> _isUserAccepted;
     private readonly long _authorChatId;
 
-    public StartCommand(ITelegramService client, ICommandListenerManager listenerManager)
+    public StartCommand(IServiceProvider serviceProvider, ICommandListenerManager listenerManager) : base(serviceProvider)
     {
-        _client = client;
         _listenerManager = listenerManager;
-        _isUserAccepted = new Dictionary<long, bool>();
-        _authorChatId = long.Parse(AppConfig.Configuration["AuthorChatId"] 
-            ?? throw new InvalidOperationException("Author chat id is not configured."));
+        _isUserAccepted = new Dictionary<long, bool?>();
+      
+        var configuration = serviceProvider.GetRequiredService<IConfiguration>();
+        _authorChatId = long.Parse(configuration["AuthorChatId"] ??
+                                   throw new InvalidOperationException("Author chat id is not configured."));
+       
     }
 
-    public async Task Execute(Update update)
+    public override async Task Execute(Update update)
     {
         if (update.Message?.Text == null) return;
 
         long chatId = update.Message.Chat.Id;
         string? userName = update.Message.Chat.Username;
 
-        await _client.SendMessageAsync(chatId, "Welcome to the bot! Please wait for the author to accept you.");
-
-        if (string.IsNullOrEmpty(userName))
+        await ScopedAccessor.UseUserConfigurationRepositoryAsync(async repository =>
         {
-            await _client.SendMessageAsync(chatId, "You should have a username to use the bot.");
-            return;
-        }
+            var userConfiguration = await repository.GetUserConfigurationAsync(chatId);
+            
+            if (userConfiguration != null)
+            {
+                if (userConfiguration.IsAccepted)
+                {
+                    await Client.SendMessageAsync(chatId, "You have already been accepted and can use the bot.");
+                }
+                else
+                {
+                    await Client.SendMessageAsync(chatId, "You don't have permission to use the bot.");
+                }
+            }
+            else
+            {
+                await Client.SendMessageAsync(chatId, "Welcome to the bot! Please wait for the author to accept you.");
 
-        _listenerManager.StartListen(this, chatId);
-        _isUserAccepted[chatId] = false;
+                if (string.IsNullOrEmpty(userName))
+                {
+                    await Client.SendMessageAsync(chatId, "You should have a username to use the bot.");
+                    return;
+                }
+                userName = '@' + userName;
+        
 
-        var acceptKeyboard = new InlineKeyboardMarkup(new[]
-        {
-            new[] { InlineKeyboardButton.WithCallbackData("Accept", $"accept_@{userName}_{chatId}") },
-            new[] { InlineKeyboardButton.WithCallbackData("Reject", $"reject_@{userName}_{chatId}") }
+                _listenerManager.StartListen(this, chatId);
+                _isUserAccepted[chatId] = userConfiguration?.IsAccepted;
+
+                var acceptKeyboard = new InlineKeyboardMarkup([
+                    [InlineKeyboardButton.WithCallbackData("Accept", $"accept:{userName}:{chatId}"),],
+                    [InlineKeyboardButton.WithCallbackData("Reject", $"reject:{userName}:{chatId}")]
+                ]);
+
+                await Client.SendMessageAsync(_authorChatId, $"Do you want to accept the user {userName}?", acceptKeyboard);
+            }
         });
+        
 
-        await _client.SendMessageAsync(_authorChatId, $"Do you want to accept the user @{userName}?", acceptKeyboard);
+       
     }
 
     public async Task GetUpdate(Update update)
@@ -59,19 +84,7 @@ public class StartCommand : ICommand, IListener
         else if (update.Message != null)
         {
             long chatId = update.Message.Chat.Id;
-
-            if (_isUserAccepted.TryGetValue(chatId, out var isAccepted))
-            {
-                if (!isAccepted)
-                {
-                    await _client.SendMessageAsync(chatId, "You should wait for the author to accept you.");
-                    return;
-                }
-            }
-            else
-            {
-                await _client.SendMessageAsync(chatId, "You don't have permission to use the bot.");
-            }
+            await Client.SendMessageAsync(chatId, "You should wait for the author to accept you.");
         }
     }
 
@@ -80,30 +93,44 @@ public class StartCommand : ICommand, IListener
         if (callbackQuery.Data == null || callbackQuery.Message == null) return;
 
         long chatId = callbackQuery.Message.Chat.Id;
-        var dataParts = callbackQuery.Data.Split('_');
+        
+        var dataParts = callbackQuery.Data.Split(':');
         if (dataParts.Length < 3 || !long.TryParse(dataParts[2], out var targetChatId)) return;
 
         var action = dataParts[0];
         var targetUserName = dataParts[1];
 
         if (!_isUserAccepted.ContainsKey(targetChatId)) return;
+        
+        var userConfiguration = new UserConfiguration
+        {
+            ChatId = targetChatId,
+            UserName = targetUserName
+        };
 
         if (action == "accept")
         {
-            _isUserAccepted[targetChatId] = true;
+            userConfiguration.IsAccepted = true;
+            await Client.SendMessageAsync(chatId, $"You have accepted the user {targetUserName}.");
+            await Client.SendMessageAsync(targetChatId, "You have been accepted and can now use the bot.");
 
-            await _client.SendMessageAsync(chatId, $"You have accepted the user {targetUserName}.");
-            await _client.SendMessageAsync(targetChatId, "You have been accepted and can now use the bot.");
-
-            _listenerManager.StopListen(targetChatId);
         }
         else if (action == "reject")
         {
-            await _client.SendMessageAsync(chatId, $"You have rejected the user {targetUserName}.");
-            await _client.SendMessageAsync(targetChatId, "You have been rejected and cannot use the bot.");
-            _isUserAccepted.Remove(targetChatId);
+            await Client.SendMessageAsync(chatId, $"You have rejected the user {targetUserName}.");
+            await Client.SendMessageAsync(targetChatId, "You have been rejected and cannot use the bot.");
         }
+        
+        await ScopedAccessor.UseUserConfigurationRepositoryAsync(async repository =>
+        {
+            await repository.AddUserConfigurationAsync(userConfiguration);
+            await repository.SaveChangesAsync();
+        });
 
-        await _client.DeleteMessageAsync(chatId, callbackQuery.Message.MessageId);
+        _listenerManager.StopListen(targetChatId);
+        _isUserAccepted.Remove(targetChatId);
+        await Client.DeleteMessageAsync(chatId, callbackQuery.Message.MessageId);
     }
+    
+   
 }

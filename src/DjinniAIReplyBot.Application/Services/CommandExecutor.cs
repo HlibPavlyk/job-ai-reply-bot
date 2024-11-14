@@ -1,6 +1,6 @@
-using DjinniAIReplyBot.Application.Abstractions.ExternalServices;
 using DjinniAIReplyBot.Application.Abstractions.Telegram;
-using DjinniAIReplyBot.Application.Helpers;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Telegram.Bot.Types;
 
 namespace DjinniAIReplyBot.Application.Services;
@@ -11,25 +11,27 @@ public class CommandExecutor : ICommandListenerManager
     private readonly Dictionary<long, IListener> _listeners;
     private readonly long _authorChatId;
 
-    public CommandExecutor(ITelegramService client)
+    public CommandExecutor(IServiceProvider serviceProvider)
     {
-        _commands = GetCommands(client);
+        _commands = GetCommands(serviceProvider);
         _listeners = new Dictionary<long, IListener>();
-        _authorChatId = long.Parse(AppConfig.Configuration["AuthorChatId"] 
-            ?? throw new InvalidOperationException("Author chat id is not configured."));
+        
+        var configuration = serviceProvider.GetRequiredService<IConfiguration>();
+        _authorChatId = long.Parse(configuration["AuthorChatId"] ??
+                                   throw new InvalidOperationException("Author chat id is not configured."));
     }
 
-    private List<ICommand> GetCommands(ITelegramService client)
+    private List<ICommand> GetCommands(IServiceProvider serviceProvider)
     {
         var types = AppDomain.CurrentDomain
             .GetAssemblies()
             .SelectMany(assembly => assembly.GetTypes())
-            .Where(type => typeof(ICommand).IsAssignableFrom(type) && type.IsClass);
+            .Where(type => typeof(ICommand).IsAssignableFrom(type) && type is { IsClass: true, IsAbstract: false });
 
         return types
             .Select(type => typeof(IListener).IsAssignableFrom(type) 
-                ? Activator.CreateInstance(type, client, this) as ICommand 
-                : Activator.CreateInstance(type, client) as ICommand)
+                ? Activator.CreateInstance(type, serviceProvider, this) as ICommand 
+                : Activator.CreateInstance(type, serviceProvider) as ICommand)
             .Where(command => command != null)
             .ToList()!;
     }
@@ -56,7 +58,7 @@ public class CommandExecutor : ICommandListenerManager
 
     private async Task ProcessAuthorCallback(Update update, string callbackData)
     {
-        var dataParts = callbackData.Split('_');
+        var dataParts = callbackData.Split(':');
         if (dataParts.Length < 2 || !long.TryParse(dataParts[^1], out var targetChatId)) return;
 
         if (_listeners.TryGetValue(targetChatId, out var listener))
