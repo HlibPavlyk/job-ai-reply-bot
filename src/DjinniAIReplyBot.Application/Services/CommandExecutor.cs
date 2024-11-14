@@ -26,7 +26,7 @@ public class CommandExecutor : ICommandListenerManager
         var types = AppDomain.CurrentDomain
             .GetAssemblies()
             .SelectMany(assembly => assembly.GetTypes())
-            .Where(type => typeof(ICommand).IsAssignableFrom(type) && type.IsClass);
+            .Where(type => typeof(ICommand).IsAssignableFrom(type) && type is { IsClass: true, IsAbstract: false });
 
         return types
             .Select(type => typeof(IListener).IsAssignableFrom(type) 
@@ -58,7 +58,7 @@ public class CommandExecutor : ICommandListenerManager
 
     private async Task ProcessAuthorCallback(Update update, string callbackData)
     {
-        var dataParts = callbackData.Split('_');
+        var dataParts = callbackData.Split(':');
         if (dataParts.Length < 2 || !long.TryParse(dataParts[^1], out var targetChatId)) return;
 
         if (_listeners.TryGetValue(targetChatId, out var listener))
