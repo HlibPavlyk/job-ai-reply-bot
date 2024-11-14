@@ -15,6 +15,7 @@ public class UserConfConfiguration : IEntityTypeConfiguration<UserConfiguration>
 
         builder.Property(u => u.ChatId)
             .HasColumnName("chat_id")
+            .ValueGeneratedNever()
             .IsRequired();
         
         builder.HasIndex(u => u.ChatId)
@@ -36,8 +37,7 @@ public class UserConfConfiguration : IEntityTypeConfiguration<UserConfiguration>
             .HasDefaultValue(ReplyLanguage.En);
 
         builder.Property(u => u.ParsedResume)
-            .HasColumnName("parsed_resume")
-            .IsRequired();
+            .HasColumnName("parsed_resume");
 
         builder.Property(u => u.AdditionalConfiguration)
             .HasColumnName("additional_configuration");

@@ -24,11 +24,8 @@ namespace DjinniAIReplyBot.Infrastructure.Migrations
             modelBuilder.Entity("DjinniAIReplyBot.Domain.Entities.UserConfiguration", b =>
                 {
                     b.Property<long>("ChatId")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("bigint")
                         .HasColumnName("chat_id");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ChatId"));
 
                     b.Property<string>("AdditionalConfiguration")
                         .HasColumnType("nvarchar(max)")
@@ -41,7 +38,6 @@ namespace DjinniAIReplyBot.Infrastructure.Migrations
                         .HasColumnName("is_accepted");
 
                     b.Property<string>("ParsedResume")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)")
                         .HasColumnName("parsed_resume");
 

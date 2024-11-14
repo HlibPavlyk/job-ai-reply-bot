@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DjinniAIReplyBot.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20241114164338_AddIsAcceptedField")]
-    partial class AddIsAcceptedField
+    [Migration("20241114211150_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -27,11 +27,8 @@ namespace DjinniAIReplyBot.Infrastructure.Migrations
             modelBuilder.Entity("DjinniAIReplyBot.Domain.Entities.UserConfiguration", b =>
                 {
                     b.Property<long>("ChatId")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("bigint")
                         .HasColumnName("chat_id");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ChatId"));
 
                     b.Property<string>("AdditionalConfiguration")
                         .HasColumnType("nvarchar(max)")
@@ -45,7 +42,9 @@ namespace DjinniAIReplyBot.Infrastructure.Migrations
 
                     b.Property<string>("ParsedResume")
                         .IsRequired()
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("nvarchar(max)")
+                        .HasDefaultValue("No content")
                         .HasColumnName("parsed_resume");
 
                     b.Property<string>("ReplyLanguage")

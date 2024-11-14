@@ -14,12 +14,12 @@ namespace DjinniAIReplyBot.Infrastructure.Migrations
                 name: "user_configurations",
                 columns: table => new
                 {
-                    chat_id = table.Column<long>(type: "bigint", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
+                    chat_id = table.Column<long>(type: "bigint", nullable: false),
                     username = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     reply_language = table.Column<string>(type: "nvarchar(2)", maxLength: 2, nullable: false, defaultValue: "En"),
-                    parsed_resume = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    additional_configuration = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    parsed_resume = table.Column<string>(type: "nvarchar(max)", nullable: false, defaultValue: "No content"),
+                    additional_configuration = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    is_accepted = table.Column<bool>(type: "bit", nullable: false, defaultValue: false)
                 },
                 constraints: table =>
                 {
