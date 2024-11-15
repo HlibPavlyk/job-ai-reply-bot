@@ -23,7 +23,7 @@ public class LanguageCommand : BaseCommand, IListener
         if (update.Message?.Text == null) return;
 
         long chatId = update.Message.Chat.Id;
-        await ValidateUserAccess(chatId);
+        if(!(await ValidateUserAccess(chatId))) return;
         
         _listenerManager.StartListen(this, chatId);
 

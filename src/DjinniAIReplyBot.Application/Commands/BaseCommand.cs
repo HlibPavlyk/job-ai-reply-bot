@@ -21,19 +21,25 @@ public abstract class BaseCommand : ICommand
     public abstract string Name { get; }
     public abstract Task Execute(Update update);
 
-    protected async Task ValidateUserAccess(long chatId)
+    protected async Task<bool> ValidateUserAccess(long chatId)
     {
+        bool isUserValid = true;
         await ScopedAccessor.UseUserConfigurationRepositoryAsync(async repository =>
         {
             var userConfiguration = await repository.GetUserConfigurationAsync(chatId);
             if (userConfiguration == null)
             {
                 await Client.SendMessageAsync(chatId, "You have not been accepted yet. Please use /start to request access.");
+                isUserValid = false;
+                return;
             }
-            else if (!userConfiguration.IsAccepted)
+
+            if (!userConfiguration.IsAccepted)
             {
                 await Client.SendMessageAsync(chatId, "You don't have permission to use the bot.");
+                isUserValid = false;
             }
         });
+        return isUserValid;
     }
 }
