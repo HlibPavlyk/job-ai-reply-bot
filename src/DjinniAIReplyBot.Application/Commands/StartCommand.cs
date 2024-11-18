@@ -40,20 +40,20 @@ public class StartCommand : BaseCommand, IListener
             {
                 if (userConfiguration.IsAccepted)
                 {
-                    await Client.SendMessageAsync(chatId, "You have already been accepted and can use the bot.");
+                    await TelegramClient.SendMessageAsync(chatId, "You have already been accepted and can use the bot.");
                 }
                 else
                 {
-                    await Client.SendMessageAsync(chatId, "You don't have permission to use the bot.");
+                    await TelegramClient.SendMessageAsync(chatId, "You don't have permission to use the bot.");
                 }
             }
             else
             {
-                await Client.SendMessageAsync(chatId, "Welcome to the bot! Please wait for the author to accept you.");
+                await TelegramClient.SendMessageAsync(chatId, "Welcome to the bot! Please wait for the author to accept you.");
 
                 if (string.IsNullOrEmpty(userName))
                 {
-                    await Client.SendMessageAsync(chatId, "You should have a username to use the bot.");
+                    await TelegramClient.SendMessageAsync(chatId, "You should have a username to use the bot.");
                     return;
                 }
                 userName = '@' + userName;
@@ -67,7 +67,7 @@ public class StartCommand : BaseCommand, IListener
                     [InlineKeyboardButton.WithCallbackData("Reject", $"reject:{userName}:{chatId}")]
                 ]);
 
-                await Client.SendMessageAsync(_authorChatId, $"Do you want to accept the user {userName}?", acceptKeyboard);
+                await TelegramClient.SendMessageAsync(_authorChatId, $"Do you want to accept the user {userName}?", acceptKeyboard);
             }
         });
         
@@ -84,7 +84,7 @@ public class StartCommand : BaseCommand, IListener
         else if (update.Message != null)
         {
             long chatId = update.Message.Chat.Id;
-            await Client.SendMessageAsync(chatId, "You should wait for the author to accept you.");
+            await TelegramClient.SendMessageAsync(chatId, "You should wait for the author to accept you.");
         }
     }
 
@@ -111,14 +111,14 @@ public class StartCommand : BaseCommand, IListener
         if (action == "accept")
         {
             userConfiguration.IsAccepted = true;
-            await Client.SendMessageAsync(chatId, $"You have accepted the user {targetUserName}.");
-            await Client.SendMessageAsync(targetChatId, "You have been accepted and can now use the bot.");
+            await TelegramClient.SendMessageAsync(chatId, $"You have accepted the user {targetUserName}.");
+            await TelegramClient.SendMessageAsync(targetChatId, "You have been accepted and can now use the bot.");
 
         }
         else if (action == "reject")
         {
-            await Client.SendMessageAsync(chatId, $"You have rejected the user {targetUserName}.");
-            await Client.SendMessageAsync(targetChatId, "You have been rejected and cannot use the bot.");
+            await TelegramClient.SendMessageAsync(chatId, $"You have rejected the user {targetUserName}.");
+            await TelegramClient.SendMessageAsync(targetChatId, "You have been rejected and cannot use the bot.");
         }
         
         await ScopedAccessor.UseUserConfigurationRepositoryAsync(async repository =>
@@ -129,7 +129,7 @@ public class StartCommand : BaseCommand, IListener
 
         _listenerManager.StopListen(targetChatId);
         _isUserAccepted.Remove(targetChatId);
-        await Client.DeleteMessageAsync(chatId, callbackQuery.Message.MessageId);
+        await TelegramClient.DeleteMessageAsync(chatId, callbackQuery.Message.MessageId);
     }
     
    

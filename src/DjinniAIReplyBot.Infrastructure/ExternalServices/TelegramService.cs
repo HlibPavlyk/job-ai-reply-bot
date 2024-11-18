@@ -1,4 +1,6 @@
 using DjinniAIReplyBot.Application.Abstractions.ExternalServices;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Telegram.Bot;
 using Telegram.Bot.Types.ReplyMarkups;
 
@@ -8,9 +10,17 @@ public class TelegramService : ITelegramService
 {
     private readonly TelegramBotClient _bot;
 
-    public TelegramService(TelegramBotClient bot)
+    public TelegramService(IServiceProvider serviceProvider)
     {
-        _bot = bot;
+        var configuration = serviceProvider.GetRequiredService<IConfiguration>();
+        var token = configuration["TelegramBotToken"];
+        
+        if (string.IsNullOrEmpty(token))
+        {
+            throw new InvalidOperationException("Telegram bot token is not configured.");
+        }
+        _bot = new TelegramBotClient(token);
+        
     }
 
     public async Task SendMessageAsync(long chatId, string message)

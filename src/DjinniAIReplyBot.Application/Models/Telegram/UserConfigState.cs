@@ -1,4 +1,4 @@
-namespace DjinniAIReplyBot.Application.Dtos.Telegram;
+namespace DjinniAIReplyBot.Application.Models.Telegram;
 
 public class UserConfigState
 {
