@@ -1,5 +1,6 @@
 using DjinniAIReplyBot.Application.Abstractions.ExternalServices;
 using DjinniAIReplyBot.Application.Abstractions.Repositories;
+using DjinniAIReplyBot.Application.Abstractions.Services;
 using DjinniAIReplyBot.Application.Abstractions.Telegram;
 using DjinniAIReplyBot.Application.Helpers;
 using DjinniAIReplyBot.Application.Services;
@@ -20,17 +21,10 @@ public static class DependencyContainerExtensions
         services.AddSingleton<ScopedServiceAccessor>();
         services.AddScoped<IUserConfigurationRepository, UserConfigurationRepository>();
         
-        services.AddSingleton<TelegramBotClient>(_ =>
-        {
-            var token = configuration["TelegramBotToken"];
-            if (string.IsNullOrEmpty(token))
-            {
-                throw new InvalidOperationException("Telegram bot token is not configured.");
-            }
-            return new TelegramBotClient(token);
-        });
-        
         services.AddSingleton<ITelegramService, TelegramService>();
+        services.AddSingleton<IChatGptClient, ChatGptClient>();
+        services.AddSingleton<IChatGptService, ChatGptService>();
+        
         services.AddSingleton<CommandExecutor>();
         services.AddSingleton<ICommandListenerManager>(provider => provider.GetRequiredService<CommandExecutor>());
         
