@@ -8,7 +8,6 @@ using DjinniAIReplyBot.Infrastructure.ExternalServices;
 using DjinniAIReplyBot.Infrastructure.Repositories;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Telegram.Bot;
 
 namespace DjinniAIReplyBot.Infrastructure.Extensions;
 
@@ -17,6 +16,7 @@ public static class DependencyContainerExtensions
     public static void AddDependencies(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddDbEfConnection(configuration);
+        services.AddHttpClient();
         
         services.AddSingleton<ScopedServiceAccessor>();
         services.AddScoped<IUserConfigurationRepository, UserConfigurationRepository>();

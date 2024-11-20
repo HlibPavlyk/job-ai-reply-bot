@@ -12,6 +12,7 @@
 
     <ItemGroup>
       <PackageReference Include="Azure.AI.OpenAI" Version="2.0.0" />
+      <PackageReference Include="PdfPig" Version="0.1.9" />
       <PackageReference Include="Telegram.Bot" Version="22.0.2" />
     </ItemGroup>
 
