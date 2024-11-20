@@ -17,9 +17,14 @@ public class ChatGptService : IChatGptService
     {
         var messages = new List<ChatMessage>
         {
-            new SystemChatMessage("You are a professional assistant that parses resumes."),
-            new UserChatMessage($"Parse the following resume into structured text: {resumeText}")
+            new SystemChatMessage(
+                "You are an HR assistant specialized in extracting and formatting resumes for specific job applications. Focus on listing the key skills in detail. Summarize other sections, such as education and projects, briefly. If a section is not present in the resume, do not create it. Format the output as a concise and structured Telegram message."),
+            new UserChatMessage(
+                $"Here is the resume to process: {resumeText}")
         };
+
+
+
 
         return await _chatGptClient.GenerateNewChatResponseAsync(chatId, messages);
     }
@@ -28,16 +33,16 @@ public class ChatGptService : IChatGptService
     {
         var messages = new List<ChatMessage>
         {
-            new SystemChatMessage("You are an assistant that generates personalized cover letters."),
-            new UserChatMessage($"Here is the job description: {jobDescription}"),
-            new UserChatMessage($"Here is the resume: {resumeText}"),
-            new UserChatMessage($"Reply in the following language: {replyLanguage}")
-            
+            new SystemChatMessage(
+                "You are a professional assistant who generates highly personalized cover letters. Your goal is to highlight the candidate's relevant skills and experiences based on the provided resume and job description. Write a concise, professional, and engaging cover letter."),
+            new UserChatMessage($"Job Description: {jobDescription}"),
+            new UserChatMessage($"Resume: {resumeText}"),
+            new UserChatMessage($"The cover letter should be written in the following language: {replyLanguage}.")
         };
 
         if (!string.IsNullOrEmpty(additionalNotes))
         {
-            messages.Add(new UserChatMessage($"Additional notes: {additionalNotes}"));
+            messages.Add(new UserChatMessage($"Additional Notes from the user: {additionalNotes}"));
         }
         return await _chatGptClient.GenerateNewChatResponseAsync(chatId, messages);
     }
