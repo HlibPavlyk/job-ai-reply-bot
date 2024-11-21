@@ -1,5 +1,5 @@
 using DjinniAIReplyBot.Application.Abstractions.Telegram;
-using DjinniAIReplyBot.Application.Models.Telegram;
+using DjinniAIReplyBot.Application.Helpers;
 using Telegram.Bot.Types;
 using UglyToad.PdfPig.Core;
 

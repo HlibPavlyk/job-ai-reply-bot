@@ -2,7 +2,7 @@ using System.Text;
 using UglyToad.PdfPig;
 using UglyToad.PdfPig.Core;
 
-namespace DjinniAIReplyBot.Application.Models.Telegram;
+namespace DjinniAIReplyBot.Application.Helpers;
 
 public static class PdfTools
 {

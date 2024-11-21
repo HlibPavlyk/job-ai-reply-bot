@@ -56,15 +56,4 @@ public class ChatGptService : IChatGptService
         
         return _chatGptClient.ContinueChatResponseAsync(chatId, userRevision);
     }
-
-    public async Task<string?> TestJokeGenerationAsync(long chatId)
-    {
-        var messages = new List<ChatMessage>
-        {
-            new SystemChatMessage("You are an assistant that generates jokes."),
-            new UserChatMessage("Generate a joke for me.")
-        };
-        
-        return await _chatGptClient.GenerateNewChatResponseAsync(chatId, messages);
-    }
 }
