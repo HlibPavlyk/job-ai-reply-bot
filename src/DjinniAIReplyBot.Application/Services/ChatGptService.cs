@@ -1,5 +1,6 @@
 using DjinniAIReplyBot.Application.Abstractions.ExternalServices;
 using DjinniAIReplyBot.Application.Abstractions.Services;
+using DjinniAIReplyBot.Domain.Enums;
 using OpenAI.Chat;
 
 namespace DjinniAIReplyBot.Application.Services;
@@ -29,7 +30,7 @@ public class ChatGptService : IChatGptService
         return await _chatGptClient.GenerateNewChatResponseAsync(chatId, messages);
     }
 
-    public async Task<string?> GenerateCoverLetterAsync(long chatId, string jobDescription, string resumeText, string replyLanguage, string? additionalNotes = null)
+    public async Task<string?> GenerateCoverLetterAsync(long chatId, string jobDescription, string resumeText, ReplyLanguage replyLanguage, string? additionalNotes = null)
     {
         var messages = new List<ChatMessage>
         {

@@ -28,7 +28,7 @@ public class ConfigureCommand : BaseCommand, IListener
 
         _userResumeConfigurations[chatId] = string.Empty;
 
-   await TelegramClient.SendMessageAsync(chatId, "Please upload your resume in PDF format.");
+        await TelegramClient.SendMessageAsync(chatId, "Please upload your resume in PDF format.");
     }
 
     public async Task GetUpdate(Update update)
