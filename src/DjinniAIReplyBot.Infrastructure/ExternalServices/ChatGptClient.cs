@@ -1,4 +1,5 @@
 using DjinniAIReplyBot.Application.Abstractions.ExternalServices;
+using DjinniAIReplyBot.Domain.Exceptions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using OpenAI;
@@ -43,6 +44,11 @@ public class ChatGptClient : IChatGptClient
         if (!_chatContexts.TryGetValue(chatId, out var chatContext))
         {
             throw new InvalidOperationException("Chat context not found for the given chat id.");
+        }
+
+        if (chatContext.Count > 10)
+        {
+            throw new ChatGptClientException("A lot of messages have been exchanged. Please try generating a new response");
         }
 
         chatContext.Add(new UserChatMessage(

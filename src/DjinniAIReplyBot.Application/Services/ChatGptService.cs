@@ -24,9 +24,6 @@ public class ChatGptService : IChatGptService
                 $"Here is the resume to process: {resumeText}")
         };
 
-
-
-
         return await _chatGptClient.GenerateNewChatResponseAsync(chatId, messages);
     }
 
@@ -35,11 +32,12 @@ public class ChatGptService : IChatGptService
         var messages = new List<ChatMessage>
         {
             new SystemChatMessage(
-                "You are a professional assistant who generates highly personalized cover letters. Your goal is to highlight the candidate's relevant skills and experiences based on the provided resume and job description. Write a concise, professional, and engaging cover letter."),
+                "You are a professional assistant who generates highly personalized cover letters. Your goal is to highlight the candidate's relevant skills and experiences based on the provided resume and job description. Write a concise, professional, and engaging cover letter in first person, without including formal elements like addresses, dates, or salutations. Focus on directly aligning the candidate's skills with the job requirements."),
             new UserChatMessage($"Job Description: {jobDescription}"),
             new UserChatMessage($"Resume: {resumeText}"),
-            new UserChatMessage($"The cover letter should be written in the following language: {replyLanguage}.")
+            new UserChatMessage($"The cover letter should be written in the following language: {(replyLanguage == ReplyLanguage.En ? "English" : "Ukrainian")}.")
         };
+
 
         if (!string.IsNullOrEmpty(additionalNotes))
         {
