@@ -88,6 +88,15 @@ public class StartCommand : BaseCommand, IListener
         }
     }
 
+    public async Task<bool> ResetUpdate(Update update)
+    {
+        if (string.IsNullOrEmpty(update.Message?.Text))
+            return false;
+
+        await TelegramClient.SendMessageAsync(update.Message.Chat.Id, "You can't use other commands until you are accepted.");
+        return false;
+    }
+
     private async Task HandleUserAccept(CallbackQuery callbackQuery)
     {
         if (callbackQuery.Data == null || callbackQuery.Message == null) return;

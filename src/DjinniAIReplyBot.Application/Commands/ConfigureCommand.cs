@@ -52,6 +52,18 @@ public class ConfigureCommand : BaseCommand, IListener
         }
     }
 
+    public Task<bool> ResetUpdate(Update update)
+    {
+        if (string.IsNullOrEmpty(update.Message?.Text))
+            return Task.FromResult(false);
+
+        var chatId = update.Message.Chat.Id;
+        _userResumeConfigurations.Remove(chatId);
+        _listenerManager.StopListen(chatId);
+       
+        return Task.FromResult(true);
+    }
+
     private async Task HandleDocument(Message message)
     {
         if (message.Document == null) return;

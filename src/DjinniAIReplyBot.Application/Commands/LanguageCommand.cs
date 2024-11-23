@@ -49,6 +49,18 @@ public class LanguageCommand : BaseCommand, IListener
         }
     }
 
+    public Task<bool> ResetUpdate(Update update)
+    {
+        if (string.IsNullOrEmpty(update.Message?.Text))
+            return Task.FromResult(false);
+
+        var chatId = update.Message.Chat.Id;
+        _userLanguages.Remove(chatId);
+        _listenerManager.StopListen(chatId);
+       
+        return Task.FromResult(true);
+    }
+
     private async Task HandleLanguageSelection(CallbackQuery callbackQuery)
     {
         if (callbackQuery.Message != null)

@@ -38,7 +38,7 @@ public class CommandExecutor : ICommandListenerManager
 
     public async Task GetUpdate(Update update)
     {
-        long? chatId = update.Message?.Chat.Id ?? update.CallbackQuery?.Message?.Chat.Id;
+        var chatId = update.Message?.Chat.Id ?? update.CallbackQuery?.Message?.Chat.Id;
         if (chatId == null) return;
 
         if (chatId == _authorChatId && update.CallbackQuery?.Data != null)
@@ -48,12 +48,19 @@ public class CommandExecutor : ICommandListenerManager
 
         if (_listeners.TryGetValue(chatId.Value, out var listener))
         {
-            await listener.GetUpdate(update);
+            if(update.Message?.Text != null && IsNewValidCommand(update.Message.Text))
+            {
+                if (!await listener.ResetUpdate(update))
+                    return;
+            }
+            else
+            {
+                await listener.GetUpdate(update);
+                return;
+            }
         }
-        else
-        {
-            await ExecuteCommand(update);
-        }
+        
+        await ExecuteCommand(update);
     }
 
     private async Task ProcessAuthorCallback(Update update, string callbackData)
@@ -80,6 +87,12 @@ public class CommandExecutor : ICommandListenerManager
             }
         }
     }
+    
+    private bool IsNewValidCommand(string currentCommand)
+    {
+        return _commands.Select(command => command.Name).Contains(currentCommand);
+    }
+
 
     public void StartListen(IListener newListener, long chatId)
     {
