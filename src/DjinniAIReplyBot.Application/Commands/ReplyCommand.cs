@@ -1,8 +1,9 @@
+using System.Collections;
 using DjinniAIReplyBot.Application.Abstractions.Telegram;
 using DjinniAIReplyBot.Application.Models;
 using DjinniAIReplyBot.Domain.Entities;
+using DjinniAIReplyBot.Domain.Exceptions;
 using Telegram.Bot.Types;
-using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
 
 namespace DjinniAIReplyBot.Application.Commands;
@@ -40,8 +41,10 @@ public class ReplyCommand : BaseCommand, IListener
         if (update.CallbackQuery  != null)
         {
             await HandleReplyConfirming(update.CallbackQuery);
+            return;
         }
-        else if (update.Message != null)
+        
+        if (update.Message != null)
         {
             var chatId = update.Message.Chat.Id;
             if (_jobDescriptionOrRevision.TryGetValue(chatId, out var replyNotes))
@@ -63,6 +66,15 @@ public class ReplyCommand : BaseCommand, IListener
         }
     }
 
+    public async Task<bool> ResetUpdate(Update update)
+    {
+        if (string.IsNullOrWhiteSpace(update.Message?.Text))
+            return false;
+
+        await ExitFromCommand(update.Message.Chat.Id);
+        return true;
+    }
+
     private async Task HandleJobDescription(Message message)
     {
         if (message.Text == null) return;
@@ -82,17 +94,15 @@ public class ReplyCommand : BaseCommand, IListener
 
         if (userConfigs?.ParsedResume == null)
         {
-            _jobDescriptionOrRevision.Remove(chatId);
-            _listenerManager.StopListen(chatId);
-            await TelegramClient.SendMessageAsync(chatId, "You need to configure your resume first. Please use /configure command.");
+            await ExitFromCommand(chatId, "You need to configure your resume first. Please use /configure command.");
             return;
         }
-        
-        var reply = "Generated reply";
-        /*var reply = await ChatGptClient.GenerateCoverLetterAsync(chatId, _jobDescriptionOrRevision[chatId], userConfigs.ParsedResume,
-            userConfigs.ReplyLanguage, userConfigs.AdditionalConfiguration);*/
-        
-       await OutputReply(chatId, reply);
+
+        // var reply = "Generated reply";
+        var reply = await ChatGptClient.GenerateCoverLetterAsync(chatId, value.JobDescription, userConfigs.ParsedResume,
+            userConfigs.ReplyLanguage, userConfigs.AdditionalConfiguration);
+            
+        await OutputReply(chatId, reply);
     }
     
     private async Task HandleReplyConfirming(CallbackQuery callbackQuery)
@@ -100,23 +110,24 @@ public class ReplyCommand : BaseCommand, IListener
         if (callbackQuery.Message == null)
             return;
         
-        long chatId = callbackQuery.Message.Chat.Id;
+        var chatId = callbackQuery.Message.Chat.Id;
         
-        if(callbackQuery.Data == "confirm")
+        switch (callbackQuery.Data)
         {
-            _jobDescriptionOrRevision.Remove(chatId);
-            _listenerManager.StopListen(chatId);
-            await TelegramClient.DeleteMessageAsync(chatId, callbackQuery.Message.MessageId);
-            await TelegramClient.SendMessageAsync(chatId, "Reply confirmed. You can now use the bot to generate more replies.");
-        }
-        else if(callbackQuery.Data == "regenerate")
-        {
-            if (!_jobDescriptionOrRevision.TryGetValue(chatId, out var value))
-                return;
+            case "confirm":
+                await TelegramClient.DeleteMessageAsync(chatId, callbackQuery.Message.MessageId);
+                await ExitFromCommand(chatId, "Reply confirmed. You can now use the bot to generate more replies.");
+                break;
+            case "regenerate":
+            {
+                if (!_jobDescriptionOrRevision.TryGetValue(chatId, out var value))
+                    return;
             
-            value.Revision = string.Empty;
-            await TelegramClient.DeleteMessageAsync(chatId, callbackQuery.Message.MessageId);
-            await TelegramClient.SendMessageAsync(chatId, "Please information you want to revise.");
+                value.Revision = string.Empty;
+                await TelegramClient.DeleteMessageAsync(chatId, callbackQuery.Message.MessageId);
+                await TelegramClient.SendMessageAsync(chatId, "Please information you want to revise.");
+                break;
+            }
         }
     }
 
@@ -148,15 +159,29 @@ public class ReplyCommand : BaseCommand, IListener
            return;
        
        value.Revision = message.Text;
-       
        await TelegramClient.SendMessageAsync(chatId, "Revision received. Generating reply...");
-        
-       var reply = "Revised reply";
-       /*var reply = await ChatGptClient.GenerateCoverLetterAsync(chatId, _jobDescriptionOrRevision[chatId], userConfigs.ParsedResume,
-           userConfigs.ReplyLanguage, userConfigs.AdditionalConfiguration);*/
-        
-       await OutputReply(chatId, reply);
+       
+       try
+       {
+           //var reply = "Revised reply";
+           var reply = await ChatGptClient.RegenerateCoverLetterAsync(chatId, value.Revision);
+           await OutputReply(chatId, reply);
+       }
+       catch (ChatGptClientException e)
+       {
+           await ExitFromCommand(chatId, e.Message + "with /reply command.");
+       }
    }
     
+   private async Task ExitFromCommand(long chatId, string? message = null)
+   {
+       _jobDescriptionOrRevision.Remove(chatId);
+       _listenerManager.StopListen(chatId);
+       
+         if (message != null)
+         {
+              await TelegramClient.SendMessageAsync(chatId, message);
+         }
+   }
     
 }
