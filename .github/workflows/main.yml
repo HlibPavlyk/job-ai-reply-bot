@@ -121,4 +121,4 @@ jobs:
 
             # Start services with Docker Compose
             docker-compose -f docker-compose.prod.yml up -d
-        debug: true
+          debug: true
