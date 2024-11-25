@@ -13,7 +13,6 @@ env:
   REGISTRY: registry.digitalocean.com/job-ai-reply-bot
   IMAGE_NAME: job-ai-reply-bot
   CONTAINER_NAME: job-ai-reply-bot
-  ENV_FILE_PATH: .env
   LOGS_PATH: /root/job-ai-reply-bot/logs
 
 jobs:
@@ -67,6 +66,10 @@ jobs:
     runs-on: ubuntu-latest
     needs: copy_files
 
+    env:
+      ENV_FILE_PATH: .env
+      SHORT_SHA: ${{ needs.build_and_push.outputs.short_sha }}
+
     steps:
       - name: Create configuration file on server
         uses: appleboy/ssh-action@v0.1.10
@@ -78,16 +81,16 @@ jobs:
           script: |
             # Перейти до директорії з docker-compose.yml
             cd /root/job-ai-reply-bot
-
+            
             # Створити файл .env з необхідними змінними
-            echo "ConnectionStrings__DefaultConnection=${DEFAULT_CONNECTION}" > .env
-            echo "TelegramBotToken=${TELEGRAM_BOT_TOKEN}" >> .env
-            echo "AuthorChatId=${AUTHOR_CHAT_ID}" >> .env
-            echo "ChatGptAccessToken=${CHAT_GPT_ACCESS_TOKEN}" >> .env
-            echo "SA_PASSWORD=${SA_PASSWORD}" >> .env
-            echo "REGISTRY=${REGISTRY}" >> .env
-            echo "IMAGE_NAME=${IMAGE_NAME}" >> .env
-            echo "GITHUB_SHA=${SHORT_SHA}" >> .env
+            echo "ConnectionStrings__DefaultConnection=${{ secrets.DEFAULT_CONNECTION }}" > $ENV_FILE_PATH
+            echo "TelegramBotToken=${{ secrets.TELEGRAM_BOT_TOKEN }}" >> $ENV_FILE_PATH
+            echo "AuthorChatId=${{ secrets.AUTHOR_CHAT_ID }} >> $ENV_FILE_PATH
+            echo "ChatGptAccessToken=${{ secrets.CHAT_GPT_ACCESS_TOKEN }}" >> $ENV_FILE_PATH
+            echo "SA_PASSWORD=${{ secrets.SA_PASSWORD }}" >> $ENV_FILE_PATH
+            echo "REGISTRY=${REGISTRY}" >> $ENV_FILE_PATH
+            echo "IMAGE_NAME=${IMAGE_NAME}" >> $ENV_FILE_PATH
+            echo "GITHUB_SHA=${SHORT_SHA}" >> $ENV_FILE_PATH
 
   deploy:
     runs-on: ubuntu-latest
