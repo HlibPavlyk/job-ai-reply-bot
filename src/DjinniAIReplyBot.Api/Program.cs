@@ -9,16 +9,20 @@ builder.Services.ConfigureTelegramBotMvc();
 
 builder.Services.AddDependencies(builder.Configuration);
 
+builder.Configuration.AddEnvironmentVariables();
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
+if (app.Environment.IsProduction())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    app.MigrateDatabase();
 }
+
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
 app.MapControllers();

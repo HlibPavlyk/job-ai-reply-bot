@@ -23,7 +23,7 @@ public class LanguageCommand : BaseCommand, IListener
         if (update.Message?.Text == null) return;
 
         long chatId = update.Message.Chat.Id;
-        await ValidateUserAccess(chatId);
+        if(!(await ValidateUserAccess(chatId))) return;
         
         _listenerManager.StartListen(this, chatId);
 
@@ -34,7 +34,7 @@ public class LanguageCommand : BaseCommand, IListener
             [InlineKeyboardButton.WithCallbackData("Ukrainian", "lang_ua")]
         ]);
 
-        await Client.SendMessageAsync(chatId, "Choose reply generation language:", languageKeyboard);
+        await TelegramClient.SendMessageAsync(chatId, "Choose reply generation language:", languageKeyboard);
     }
 
     public async Task GetUpdate(Update update)
@@ -49,6 +49,18 @@ public class LanguageCommand : BaseCommand, IListener
         }
     }
 
+    public Task<bool> ResetUpdate(Update update)
+    {
+        if (string.IsNullOrEmpty(update.Message?.Text))
+            return Task.FromResult(false);
+
+        var chatId = update.Message.Chat.Id;
+        _userLanguages.Remove(chatId);
+        _listenerManager.StopListen(chatId);
+       
+        return Task.FromResult(true);
+    }
+
     private async Task HandleLanguageSelection(CallbackQuery callbackQuery)
     {
         if (callbackQuery.Message != null)
@@ -60,8 +72,8 @@ public class LanguageCommand : BaseCommand, IListener
 
             _userLanguages[chatId] = callbackQuery.Data == "lang_en" ? "English" : "Ukrainian";
 
-            await Client.DeleteMessageAsync(chatId, callbackQuery.Message.MessageId);
-            await Client.SendMessageAsync(chatId, $"Chosen language: {_userLanguages[chatId]}");
+            await TelegramClient.DeleteMessageAsync(chatId, callbackQuery.Message.MessageId);
+            await TelegramClient.SendMessageAsync(chatId, $"Chosen language: {_userLanguages[chatId]}");
 
             await ScopedAccessor.UseUserConfigurationRepositoryAsync(async repository =>
             {

@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -10,6 +11,14 @@ public static class DbConnectionExtensions
     { 
         service.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
+    }
+    
+    public static void MigrateDatabase(this IApplicationBuilder app)
+    {
+        // Creates a scope to resolve the ApplicationDbContext service and migrate the database.
+        using var scope = app.ApplicationServices.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        db.Database.Migrate(); 
     }
    
 }

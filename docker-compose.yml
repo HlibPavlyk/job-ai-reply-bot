@@ -1,0 +1,38 @@
+﻿version: '3.8'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: src/DjinniAIReplyBot.Api/Dockerfile
+    container_name: job-ai-reply-bot
+    ports:
+      - "8080:8080"
+    environment:
+      - ConnectionStrings__DefaultConnection=${DEFAULT_CONNECTION}
+      - TelegramBotToken=${TELEGRAM_BOT_TOKEN}
+      - AuthorChatId=${AUTHOR_CHAT_ID}
+      - ChatGptAccessToken=${CHAT_GPT_ACCESS_TOKEN}
+    depends_on:
+      - db
+    networks:
+      - app_network
+
+  db:
+    image: mcr.microsoft.com/mssql/server
+    container_name: job-ai-reply-db
+    ports:
+      - "1433:1433"
+    environment:
+      SA_PASSWORD: ${SA_PASSWORD}
+      ACCEPT_EULA: "Y"
+    networks:
+      - app_network
+
+volumes:
+  mssql_data:
+    driver: local
+
+networks:
+  app_network:
+    driver: bridge
