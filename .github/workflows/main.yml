@@ -80,14 +80,14 @@ jobs:
             cd /root/job-ai-reply-bot
 
             # Створити файл .env з необхідними змінними
-            echo "ConnectionStrings__DefaultConnection=${DEFAULT_CONNECTION}" > $ENV_FILE_PATH
-            echo "TelegramBotToken=${TELEGRAM_BOT_TOKEN}" >> $ENV_FILE_PATH
-            echo "AuthorChatId=${AUTHOR_CHAT_ID}" >> $ENV_FILE_PATH
-            echo "ChatGptAccessToken=${CHAT_GPT_ACCESS_TOKEN}" >> $ENV_FILE_PATH
-            echo "SA_PASSWORD=${SA_PASSWORD}" >> $ENV_FILE_PATH
-            echo "REGISTRY=${REGISTRY}" >> $ENV_FILE_PATH
-            echo "IMAGE_NAME=${IMAGE_NAME}" >> $ENV_FILE_PATH
-            echo "GITHUB_SHA=${SHORT_SHA}" >> $ENV_FILE_PATH
+            echo "ConnectionStrings__DefaultConnection=${DEFAULT_CONNECTION}" > .env
+            echo "TelegramBotToken=${TELEGRAM_BOT_TOKEN}" >> .env
+            echo "AuthorChatId=${AUTHOR_CHAT_ID}" >> .env
+            echo "ChatGptAccessToken=${CHAT_GPT_ACCESS_TOKEN}" >> .env
+            echo "SA_PASSWORD=${SA_PASSWORD}" >> .env
+            echo "REGISTRY=${REGISTRY}" >> .env
+            echo "IMAGE_NAME=${IMAGE_NAME}" >> .env
+            echo "GITHUB_SHA=${SHORT_SHA}" >> .env
 
   deploy:
     runs-on: ubuntu-latest
