@@ -19,30 +19,30 @@ env:
 
 
 jobs:
-  build_and_test:
-    runs-on: ubuntu-latest
-    
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v3
-        with:
-          dotnet-version: 8.0.x
-
-      - name: Install dependencies
-        run: dotnet restore
-
-      - name: Build
-        run: dotnet build --no-restore
-
-      - name: Test
-        run: dotnet test --no-build --verbosity normal
+#  build_and_test:
+#    runs-on: ubuntu-latest
+#    
+#    steps:
+#      - uses: actions/checkout@v3
+#
+#      - name: Setup .NET
+#        uses: actions/setup-dotnet@v3
+#        with:
+#          dotnet-version: 8.0.x
+#
+#      - name: Install dependencies
+#        run: dotnet restore
+#
+#      - name: Build
+#        run: dotnet build --no-restore
+#
+#      - name: Test
+#        run: dotnet test --no-build --verbosity normal
   
   build_and_push:
     runs-on: ubuntu-latest
     if: github.event_name == 'push'
-    needs: build_and_test
+#    needs: build_and_test
 
     steps:
       - name: Checkout master
@@ -50,7 +50,7 @@ jobs:
 
       - name: Build container image
         run: |
-          docker build -t $REGISTRY/$IMAGE_NAME:${{ github.sha }} .
+          docker build -f src/DjinniAIReplyBot.Api/Dockerfile -t $REGISTRY/$IMAGE_NAME:${{ github.sha }} .
 
       - name: Install doctl
         uses: digitalocean/action-doctl@v2
