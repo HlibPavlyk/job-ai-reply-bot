@@ -1,0 +1,98 @@
+name: CI/CD for JobAIReplyBot
+
+on:
+  push:
+    branches:
+      - main
+      - feature/setup-ci-cd
+  pull_request:
+    branches:
+      - main
+
+env:
+  REGISTRY: registry.digitalocean.com/job-ai-reply-bot
+  IMAGE_NAME: job-ai-reply-bot
+  CONTAINER_NAME: job-ai-reply-bot
+  ENV_FILE_PATH: ./.env.prod
+  LOGS_PATH: /root/job-ai-reply-bot/logs
+
+
+
+jobs:
+  build_and_test:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Install dependencies
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --no-restore
+
+      - name: Test
+        run: dotnet test --no-build --verbosity normal
+  
+  build_and_push:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    needs: build_and_test
+
+    steps:
+      - name: Checkout master
+        uses: actions/checkout@v3
+
+      - name: Build container image
+        run: |
+          docker build -t $REGISTRY/$IMAGE_NAME:${{ github.sha }} .
+
+      - name: Install doctl
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+
+      - name: Log in to DigitalOcean Container Registry
+        run: doctl registry login --expiry-seconds 600
+
+      - name: Push image to DigitalOcean Container Registry
+        run: docker push $REGISTRY/$IMAGE_NAME:${{ github.sha }}
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build_and_push
+    
+    steps:
+      - name: Deploy to Digital Ocean droplet via SSH
+        uses: appleboy/ssh-action@v0.1.3
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          envs: IMAGE_NAME,REGISTRY,GITHUB_SHA,LOGS_PATH,ENV_FILE_PATH
+          script: |
+            # Login to Docker Registry
+            docker login -u ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }} -p ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }} $REGISTRY
+            
+            # Create .env.prod file with secrets
+            echo "ConnectionStrings__DefaultConnection=${{ secrets.DEFAULT_CONNECTION }}" > $ENV_FILE_PATH
+            echo "TelegramBotToken=${{ secrets.TELEGRAM_BOT_TOKEN }}" >> $ENV_FILE_PATH
+            echo "AuthorChatId=${{ secrets.AUTHOR_CHAT_ID }}" >> $ENV_FILE_PATH
+            echo "ChatGptAccessToken=${{ secrets.CHAT_GPT_ACCESS_TOKEN }}" >> $ENV_FILE_PATH
+            echo "SA_PASSWORD=${{ secrets.SA_PASSWORD }}" >> $ENV_FILE_PATH
+            
+            # Stop and remove old containers
+            docker-compose down || true
+            
+            # Pull the latest image
+            docker pull $REGISTRY/$IMAGE_NAME:${{ github.sha }}
+            
+            # Start services with Docker Compose
+            docker-compose up -d
+     
