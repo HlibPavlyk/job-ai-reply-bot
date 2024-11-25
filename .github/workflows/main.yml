@@ -85,7 +85,7 @@ jobs:
             # Створити файл .env з необхідними змінними
             echo "ConnectionStrings__DefaultConnection=${{ secrets.DEFAULT_CONNECTION }}" > $ENV_FILE_PATH
             echo "TelegramBotToken=${{ secrets.TELEGRAM_BOT_TOKEN }}" >> $ENV_FILE_PATH
-            echo "AuthorChatId=${{ secrets.AUTHOR_CHAT_ID }} >> $ENV_FILE_PATH
+            echo "AuthorChatId=${{ secrets.AUTHOR_CHAT_ID }}" >> $ENV_FILE_PATH
             echo "ChatGptAccessToken=${{ secrets.CHAT_GPT_ACCESS_TOKEN }}" >> $ENV_FILE_PATH
             echo "SA_PASSWORD=${{ secrets.SA_PASSWORD }}" >> $ENV_FILE_PATH
             echo "REGISTRY=${REGISTRY}" >> $ENV_FILE_PATH
