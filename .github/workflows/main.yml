@@ -134,7 +134,7 @@ jobs:
           host: ${{ secrets.HOST }}
           username: root
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          envs: TELEGRAM_BOT_TOKEN
+          envs: TELEGRAM_BOT_TOKEN,NGROK_PORT
           script: |
             echo "Fetching ngrok public URL from localhost:${NGROK_PORT}/api/tunnels"
 
