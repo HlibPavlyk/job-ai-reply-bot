@@ -136,9 +136,20 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           envs: TELEGRAM_BOT_TOKEN
           script: |
+            echo "Fetching ngrok public URL from localhost:${NGROK_PORT}/api/tunnels"
+
+            # Отримання ngrok URL
             NGROK_URL=$(curl -s http://localhost:${NGROK_PORT}/api/tunnels | jq -r '.tunnels[0].public_url')
-            
+            echo "NGROK_URL fetched: $NGROK_URL"
+
+            # Формування URL вебхука
             WEBHOOK_URL="${NGROK_URL}/api/telegram"
-            
+            echo "Webhook URL to be set: $WEBHOOK_URL"
+
+            # Встановлення вебхука
+            echo "Setting Telegram Webhook..."
             curl -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/setWebhook" \
                 -d "url=$WEBHOOK_URL"
+            echo "Webhook set response:"
+            curl -X GET "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getWebhookInfo"
+          
