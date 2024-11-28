@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+
+  api:
+    image: ${REGISTRY}/${IMAGE_NAME}:${GITHUB_SHA}
+    container_name: job-ai-reply-bot
+    environment:
+      - ConnectionStrings__DefaultConnection=${DEFAULT_CONNECTION}
+      - TelegramBotToken=${TELEGRAM_BOT_TOKEN}
+      - AuthorChatId=${AUTHOR_CHAT_ID}
+      - ChatGptAccessToken=${CHAT_GPT_ACCESS_TOKEN}
+    depends_on:
+      - db
+    networks:
+      - app_network
+
+  db:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    container_name: job-ai-reply-db
+    environment:
+      SA_PASSWORD: ${SA_PASSWORD}
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: "Express"
+    volumes:
+      - mssql_data:/var/opt/mssql
+    networks:
+      - app_network
+
+  ngrok:
+    image: ngrok/ngrok
+    container_name: job-ai-reply-ngrok
+    command: http api:8080
+    environment:
+      NGROK_AUTHTOKEN: ${NGROK_AUTH_TOKEN}
+      NGROK_REGION: "eu"
+    ports:
+      - "4040:4040"
+    depends_on:
+      - api
+    networks:
+      - app_network
+
+volumes:
+  mssql_data:
+
+networks:
+  app_network:
+    name: app_network

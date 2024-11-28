@@ -19,6 +19,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.gitignore = .gitignore
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DjiniAIReplyBot.UnitTests", "tests\DjiniAIReplyBot.UnitTests\DjiniAIReplyBot.UnitTests.csproj", "{35C79593-C6A1-4C90-A9A5-AEDBCFDC2EB4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -29,6 +31,7 @@ Global
 		{6CDBB72E-D85E-4FF0-BA3E-9A47F16809E7} = {651C01B0-6026-4F33-AA61-419BEBF36197}
 		{474A16E2-EFDF-46B1-8E09-F42691895717} = {651C01B0-6026-4F33-AA61-419BEBF36197}
 		{D3E6A616-8742-4932-84A1-CFCB27D5B3F1} = {651C01B0-6026-4F33-AA61-419BEBF36197}
+		{35C79593-C6A1-4C90-A9A5-AEDBCFDC2EB4} = {57749F63-7E1A-467D-A093-C8149DDE71E7}
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{83EEB969-7652-4FE5-9EDA-0768F4C372B8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -47,5 +50,9 @@ Global
 		{D3E6A616-8742-4932-84A1-CFCB27D5B3F1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D3E6A616-8742-4932-84A1-CFCB27D5B3F1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D3E6A616-8742-4932-84A1-CFCB27D5B3F1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{35C79593-C6A1-4C90-A9A5-AEDBCFDC2EB4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{35C79593-C6A1-4C90-A9A5-AEDBCFDC2EB4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{35C79593-C6A1-4C90-A9A5-AEDBCFDC2EB4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{35C79593-C6A1-4C90-A9A5-AEDBCFDC2EB4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
