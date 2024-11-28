@@ -97,7 +97,7 @@ jobs:
       - build_and_push_image
     env:
       ENV_FILE_PATH: .env
-      SHORT_SHA: ${{ needs.build_and_push.outputs.short_sha }}
+      SHORT_SHA: ${{ needs.build_and_push_image.outputs.short_sha }}
     steps:
       - name: Create configuration file on server
         uses: appleboy/ssh-action@v0.1.10
@@ -127,7 +127,7 @@ jobs:
       - create_config
       - build_and_push_image
     env:
-      SHORT_SHA: ${{ needs.build_and_push.outputs.short_sha }}
+      SHORT_SHA: ${{ needs.build_and_push_image.outputs.short_sha }}
     steps:
       - name: Deploy to DigitalOcean droplet via SSH
         uses: appleboy/ssh-action@v0.1.10
