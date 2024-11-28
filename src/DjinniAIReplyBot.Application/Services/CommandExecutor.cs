@@ -11,9 +11,9 @@ public class CommandExecutor : ICommandListenerManager
     private readonly Dictionary<long, IListener> _listeners;
     private readonly long _authorChatId;
 
-    public CommandExecutor(IServiceProvider serviceProvider)
+    public CommandExecutor(IServiceProvider serviceProvider, List<ICommand>? commands = null)
     {
-        _commands = GetCommands(serviceProvider);
+        _commands = commands ?? GetCommands(serviceProvider);
         _listeners = new Dictionary<long, IListener>();
         
         var configuration = serviceProvider.GetRequiredService<IConfiguration>();
