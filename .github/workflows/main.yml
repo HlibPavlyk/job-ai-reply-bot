@@ -143,13 +143,13 @@ jobs:
             cd /root/job-ai-reply-bot
 
             # Stop and remove any existing containers
-            docker-compose -f docker-compose.prod.yml down || true
+            docker compose -f docker-compose.prod.yml down || true
 
             # Pull the latest image from the registry
-            docker-compose -f docker-compose.prod.yml pull
+            docker compose -f docker-compose.prod.yml pull
 
             # Start the services using the updated Docker Compose configuration
-            docker-compose -f docker-compose.prod.yml up -d
+            docker compose -f docker-compose.prod.yml up -d
           debug: true
   
   set_webhook:
