@@ -137,7 +137,7 @@ jobs:
           envs: REGISTRY,IMAGE_NAME,SHORT_SHA
           script: |
             # Log in to Docker Registry on the server
-            docker login -u ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }} -p ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }} $REGISTRY
+            docker login -u "doctr" -p ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }} $REGISTRY
 
             # Navigate to the application directory
             cd /root/job-ai-reply-bot
