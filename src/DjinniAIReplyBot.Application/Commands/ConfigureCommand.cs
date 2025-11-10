@@ -85,7 +85,7 @@ public class ConfigureCommand : BaseCommand, IListener
             string parsedText = PdfTools.ParsePdfToString(fileBytes);
             
             var parsedGptText = await ChatGptClient.ParseResumeAsync(chatId, parsedText);
-            //var parsedGptText = parsedText;
+            
             if (string.IsNullOrEmpty(parsedGptText))
             {
                 await TelegramClient.SendMessageAsync(chatId, "Your resume could not be processed by the AI. Please provide your resume as text.");

@@ -10,8 +10,8 @@ namespace DjinniAIReplyBot.Infrastructure.ExternalServices;
 public class ChatGptClient : IChatGptClient
 {
     private readonly ChatClient _chatClient;
-    private const string ChatGptModelName = "gpt-3.5-turbo-0125";
-    //private const string ChatGptModelName = "gpt-4o";
+    //private const string ChatGptModelName = "gpt-3.5-turbo-0125";
+    private const string ChatGptModelName = "gpt-4o";
     private readonly Dictionary<long, List<ChatMessage>> _chatContexts = new(); 
 
     public ChatGptClient(IServiceProvider serviceProvider)
